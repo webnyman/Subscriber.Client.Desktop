@@ -51,8 +51,12 @@
             txtPostalCode = new TextBox();
             label8 = new Label();
             txtCity = new TextBox();
+            statusLabel = new StatusStrip();
+            toolStripStatusLabel = new ToolStripStatusLabel();
+            btnImportXml = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvSubscribers).BeginInit();
             tableLayoutPanel1.SuspendLayout();
+            statusLabel.SuspendLayout();
             SuspendLayout();
             // 
             // btnLoad
@@ -271,11 +275,37 @@
             txtCity.Size = new Size(100, 23);
             txtCity.TabIndex = 15;
             // 
+            // statusLabel
+            // 
+            statusLabel.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel });
+            statusLabel.Location = new Point(0, 480);
+            statusLabel.Name = "statusLabel";
+            statusLabel.Size = new Size(1202, 22);
+            statusLabel.TabIndex = 7;
+            statusLabel.Text = "statusStrip1";
+            // 
+            // toolStripStatusLabel
+            // 
+            toolStripStatusLabel.Name = "toolStripStatusLabel";
+            toolStripStatusLabel.Size = new Size(39, 17);
+            toolStripStatusLabel.Text = "Status";
+            // 
+            // btnImportXml
+            // 
+            btnImportXml.Location = new Point(20, 167);
+            btnImportXml.Name = "btnImportXml";
+            btnImportXml.Size = new Size(75, 23);
+            btnImportXml.TabIndex = 8;
+            btnImportXml.Text = "Importera";
+            btnImportXml.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1202, 502);
+            Controls.Add(btnImportXml);
+            Controls.Add(statusLabel);
             Controls.Add(tableLayoutPanel1);
             Controls.Add(btnExportXml);
             Controls.Add(btnDelete);
@@ -288,7 +318,10 @@
             ((System.ComponentModel.ISupportInitialize)dgvSubscribers).EndInit();
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
+            statusLabel.ResumeLayout(false);
+            statusLabel.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -316,5 +349,8 @@
         private TextBox txtPostalCode;
         private Label label8;
         private TextBox txtCity;
+        private StatusStrip statusLabel;
+        private ToolStripStatusLabel toolStripStatusLabel;
+        private Button btnImportXml;
     }
 }

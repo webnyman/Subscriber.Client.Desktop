@@ -20,21 +20,55 @@ namespace Subscriber.Client.Desktop
             btnSave.Click += async (s, e) => await SaveAsync();
             btnDelete.Click += async (s, e) => await DeleteAsync();
             btnExportXml.Click += async (s, e) => await ExportXmlAsync();
+            btnImportXml.Click += async (s, e) => await ImportXmlAsync();
+
 
             dgvSubscribers.SelectionChanged += DgvSubscribers_SelectionChanged;
         }
+
+        private void SetStatus(string text) => toolStripStatusLabel.Text = text;
+
 
         private async Task LoadSubscribersAsync()
         {
             try
             {
+                SetStatus("Laddar prenumeranter...");
                 var list = await _api.GetAllAsync();
                 dgvSubscribers.DataSource = list;
+                SetStatus($"Klar. Antal prenumeranter: {list.Count}.");
             }
             catch (Exception ex)
             {
+                SetStatus("Fel vid hämtning.");
                 MessageBox.Show($"Kunde inte hämta prenumeranter: {ex.Message}");
             }
+
+            dgvSubscribers.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvSubscribers.ReadOnly = true;
+            dgvSubscribers.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvSubscribers.MultiSelect = false;
+
+            if (dgvSubscribers.Columns["SubscriptionNumber"] != null)
+                dgvSubscribers.Columns["SubscriptionNumber"].HeaderText = "Prenr";
+            if (dgvSubscribers.Columns["PersonalNumber"] != null)
+                dgvSubscribers.Columns["PersonalNumber"].HeaderText = "Personnummer";
+            if (dgvSubscribers.Columns["FirstName"] != null)
+                dgvSubscribers.Columns["FirstName"].HeaderText = "Förnamn";
+            if (dgvSubscribers.Columns["LastName"] != null)
+                dgvSubscribers.Columns["LastName"].HeaderText = "Efternamn";
+            if (dgvSubscribers.Columns["PhoneNumber"] != null)
+                dgvSubscribers.Columns["PhoneNumber"].HeaderText = "Telefon";
+            if (dgvSubscribers.Columns["DeliveryAddress"] != null)
+                dgvSubscribers.Columns["DeliveryAddress"].HeaderText = "Adress";
+            if (dgvSubscribers.Columns["PostalCode"] != null)
+                dgvSubscribers.Columns["PostalCode"].HeaderText = "Postnr";
+            if (dgvSubscribers.Columns["City"] != null)
+                dgvSubscribers.Columns["City"].HeaderText = "Ort";
+
+            // FullName behövs kanske inte i gridet:
+            if (dgvSubscribers.Columns["FullName"] != null)
+                dgvSubscribers.Columns["FullName"].Visible = false;
         }
 
         private void ClearForm()
@@ -86,6 +120,13 @@ namespace Subscriber.Client.Desktop
             if (string.IsNullOrWhiteSpace(dto.SubscriptionNumber))
             {
                 MessageBox.Show("Prenumerationsnummer krävs.");
+                txtSubscriptionNumber.Focus();
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
+            {
+                MessageBox.Show("För- och efternamn är obligatoriskt.");
+                txtFirstName.Focus();
                 return;
             }
 
@@ -189,5 +230,43 @@ namespace Subscriber.Client.Desktop
                 MessageBox.Show($"Fel vid XML-export: {ex.Message}");
             }
         }
+        private async Task ImportXmlAsync()
+        {
+            using var dialog = new OpenFileDialog
+            {
+                Filter = "XML-filer (*.xml)|*.xml|Alla filer (*.*)|*.*",
+                Title = "Välj XML-fil med prenumeranter"
+            };
+
+            if (dialog.ShowDialog() != DialogResult.OK)
+                return;
+
+            try
+            {
+                // Om du har SetStatus/statusLabel kan du använda dem här, annars ta bort raden.
+                // SetStatus("Importerar XML...");
+
+                var ok = await _api.ImportXmlAsync(dialog.FileName);
+
+                if (!ok)
+                {
+                    MessageBox.Show("Importen misslyckades.", "Import", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // SetStatus("Import misslyckades.");
+                    return;
+                }
+
+                MessageBox.Show("Import klar.", "Import", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // Ladda om listan så de nya prenumeranterna syns direkt
+                await LoadSubscribersAsync();
+                // SetStatus("Import klar.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fel vid import: {ex.Message}", "Import", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // SetStatus("Fel vid import.");
+            }
+        }
+
     }
 }

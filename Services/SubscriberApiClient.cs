@@ -1,5 +1,9 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net;
+using System.Net.Http.Json;
 using Subscriber.Client.Desktop.Models;
+using System.Net.Http.Headers;
+using System.IO;
+
 
 namespace Subscriber.Client.Desktop.Services
 {
@@ -23,7 +27,19 @@ namespace Subscriber.Client.Desktop.Services
 
         public async Task<SubscriberDto?> GetAsync(string subscriptionNumber)
         {
-            return await _http.GetFromJsonAsync<SubscriberDto>($"/api/Subscribers/{subscriptionNumber}");
+            var url = $"/api/Subscribers/{subscriptionNumber}";
+            var response = await _http.GetAsync(url);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                // Prenumeranten finns inte – helt ok, vi talar om det med null.
+                return null;
+            }
+
+            // Vid andra fel (500, 400, etc) vill vi fortfarande få ett undantag.
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<SubscriberDto>();
         }
 
         public async Task<bool> CreateAsync(SubscriberDto dto)
@@ -52,5 +68,20 @@ namespace Subscriber.Client.Desktop.Services
 
             return await response.Content.ReadAsByteArrayAsync();
         }
+        public async Task<bool> ImportXmlAsync(string filePath)
+        {
+            using var fs = File.OpenRead(filePath);
+            using var content = new MultipartFormDataContent();
+
+            var fileContent = new StreamContent(fs);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+
+            // parameternamnet "file" måste matcha IFormFile file i din controller
+            content.Add(fileContent, "file", Path.GetFileName(filePath));
+
+            var response = await _http.PostAsync("/api/Subscribers/import/xml", content);
+            return response.IsSuccessStatusCode;
+        }
+
     }
 }
