@@ -32,11 +32,9 @@ namespace Subscriber.Client.Desktop.Services
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                // Prenumeranten finns inte – helt ok, vi talar om det med null.
                 return null;
             }
 
-            // Vid andra fel (500, 400, etc) vill vi fortfarande få ett undantag.
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<SubscriberDto>();
@@ -76,7 +74,6 @@ namespace Subscriber.Client.Desktop.Services
             var fileContent = new StreamContent(fs);
             fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
 
-            // parameternamnet "file" måste matcha IFormFile file i din controller
             content.Add(fileContent, "file", Path.GetFileName(filePath));
 
             var response = await _http.PostAsync("/api/Subscribers/import/xml", content);
